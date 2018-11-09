@@ -1,22 +1,18 @@
 'use strict';
 const deburr = require('lodash.deburr');
 const escapeStringRegexp = require('escape-string-regexp');
+const builtinReplacements = require('./replacements');
+const builtinOverridableReplacements = require('./overridable-replacements');
 
 const decamelize = string => {
 	return string
-		.replace(/([a-z\d])([A-Z])/g, `$1 $2`)
-		.replace(/([A-Z]+)([A-Z][a-z\d]+)/g, `$1 $2`);
+		.replace(/([a-z\d])([A-Z])/g, '$1 $2')
+		.replace(/([A-Z]+)([A-Z][a-z\d]+)/g, '$1 $2');
 };
-
-const builtinReplacements = new Map([
-	['&', 'and'],
-	['🦄', 'unicorn'],
-	['♥', 'love']
-]);
 
 const doCustomReplacements = (string, replacements) => {
 	for (const [key, value] of replacements) {
-		string = string.replace(new RegExp(escapeStringRegexp(key), 'g'), ` ${value} `);
+		string = string.replace(new RegExp(escapeStringRegexp(key), 'g'), value);
 	}
 
 	return string;
@@ -35,27 +31,35 @@ module.exports = (string, options) => {
 
 	options = Object.assign({
 		separator: '-',
-		customReplacements: [],
-		lowerCase: true
+		lowercase: true,
+		decamelize: true,
+		customReplacements: []
 	}, options);
 
 	const separator = escapeStringRegexp(options.separator);
 	const {lowerCase} = options;
 	const customReplacements = new Map([
-		...builtinReplacements,
-		...options.customReplacements
+		...builtinOverridableReplacements,
+		...options.customReplacements,
+		...builtinReplacements
 	]);
 
-	let regex = /[^a-zA-Z\d]+/g;
-
-	string = deburr(string);
-	string = decamelize(string);
 	string = doCustomReplacements(string, customReplacements);
-	if (lowerCase) {
-		string = string.toLowerCase();
-		regex = /[^a-z\d]+/g;
+	string = deburr(string);
+	string = string.normalize('NFKD');
+
+	if (options.decamelize) {
+		string = decamelize(string);
 	}
-	string = string.replace(regex, separator);
+
+	let patternSlug = /[^a-zA-Z\d]+/g;
+
+	if (options.lowercase) {
+		string = string.toLowerCase();
+		patternSlug = /[^a-z\d]+/g;
+	}
+
+	string = string.replace(patternSlug, separator);
 	string = string.replace(/\\/g, '');
 	string = removeMootSeparators(string, separator);
 

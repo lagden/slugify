@@ -4,6 +4,8 @@
 
 Useful for URLs, filenames, and IDs.
 
+It correctly handles [German umlauts](https://en.wikipedia.org/wiki/Germanic_umlaut), Vietnamese, Arabic, Russian, Romanian, and more.
+
 
 ## Install
 
@@ -26,13 +28,10 @@ slugify('  Déjà Vu!  ');
 slugify('fooBar 123 $#%');
 //=> 'foo-bar-123'
 
-slugify('BAR and baz', {separator: '_'});
-//=> 'bar_and_baz'
-
 slugify('I ♥ 🦄 & 🐶', {
-  customReplacements: [
-    ['🐶', 'dog']
-  ]
+	customReplacements: [
+		['🐶', 'dog']
+	]
 });
 //=> 'i-love-unicorn-and-dog'
 ```
@@ -54,16 +53,74 @@ Type: `Object`
 Type: `string`<br>
 Default: `-`
 
+```js
+slugify('BAR and baz');
+//=> 'bar-and-baz'
+
+slugify('BAR and baz', {separator: '_'});
+//=> 'bar_and_baz'
+```
+
+##### lowercase
+
+Type: `boolean`<br>
+Default: `true`
+
+Make the slug lowercase.
+
+```js
+slugify('Déjà Vu!');
+//=> 'deja-vu'
+
+slugify('Déjà Vu!', {lowercase: false});
+//=> 'Deja-Vu'
+```
+
+##### decamelize
+
+Type: `boolean`<br>
+Default: `true`
+
+Convert camelcase to separate words. Internally it does `fooBar` → `foo bar`.
+
+```js
+slugify('fooBar');
+//=> 'foo-bar'
+
+slugify('fooBar', {decamelize: false});
+//=> 'foobar'
+```
+
 ##### customReplacements
 
-Type: `Array`<br>
+Type: `Array<string[]>`<br>
 Default: `[
-  ['&', 'and'],
-  ['🦄', 'unicorn'],
-  ['♥', 'love']
+	['&', ' and '],
+	['🦄', ' unicorn '],
+	['♥', ' love ']
 ]`
 
-Specifying this only replaces the default if you set an item with the same key, like `&`.
+Specifying this only replaces the default if you set an item with the same key, like `&`. The replacements are run on the original string before any other transformations.
+
+```js
+slugify('Foo@unicorn', {
+	customReplacements: [
+		['@', 'at']
+	]
+});
+//=> 'fooatunicorn'
+```
+
+Add a leading and trailing space to the replacement to have it separated by dashes:
+
+```js
+slugify('foo@unicorn', {
+	customReplacements: [
+		['@', ' at ']
+	]
+});
+//=> 'foo-at-unicorn'
+```
 
 
 ## Related

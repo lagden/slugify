@@ -34,23 +34,72 @@ test('custom separator', t => {
 test('custom replacements', t => {
 	t.is(slugify('foo | bar', {
 		customReplacements: [
-			['|', 'or']
+			['|', ' or ']
 		]
 	}), 'foo-or-bar');
 
 	t.is(slugify('10 | 20 %', {
 		customReplacements: [
-			['|', 'or'],
-			['%', 'percent']
+			['|', ' or '],
+			['%', ' percent ']
 		]
 	}), '10-or-20-percent');
 
 	t.is(slugify('I ♥ 🦄', {
 		customReplacements: [
-			['♥', 'amour'],
-			['🦄', 'licorne']
+			['♥', ' amour '],
+			['🦄', ' licorne ']
 		]
 	}), 'i-amour-licorne');
+
+	t.is(slugify('x.y.z', {
+		customReplacements: [
+			['.', '']
+		]
+	}), 'xyz');
+
+	t.is(slugify('Zürich', {
+		customReplacements: [
+			['ä', 'ae'],
+			['ö', 'oe'],
+			['ü', 'ue'],
+			['ß', 'ss']
+		]
+	}), 'zuerich');
+});
+
+test('lowercase option', t => {
+	t.is(slugify('foo bar', {lowercase: false}), 'foo-bar');
+	t.is(slugify('BAR&baz', {lowercase: false}), 'BAR-and-baz');
+	t.is(slugify('Déjà Vu!', {separator: '_', lowercase: false}), 'Deja_Vu');
+	t.is(slugify('UNICORNS AND RAINBOWS!', {separator: '@', lowercase: false}), 'UNICORNS@AND@RAINBOWS');
+	t.is(slugify('[foo] [bar]', {separator: '.', lowercase: false}), 'foo.bar', 'escape regexp special characters');
+	t.is(slugify('Foo🦄', {lowercase: false}), 'Foo-unicorn');
+});
+
+test('decamelize option', t => {
+	t.is(slugify('fooBar'), 'foo-bar');
+	t.is(slugify('fooBar', {decamelize: false}), 'foobar');
+});
+
+test('supports German umlauts', t => {
+	t.is(slugify('ä ö ü Ä Ö Ü ß', {lowercase: false, separator: ' '}), 'ae oe ue Ae Oe Ue ss');
+});
+
+test('supports Vietnamese', t => {
+	t.is(slugify('ố Ừ Đ', {lowercase: false, separator: ' '}), 'o U D');
+});
+
+test('supports Arabic', t => {
+	t.is(slugify('ث س و', {lowercase: false, separator: ' '}), 'th s w');
+});
+
+test('supports Russian', t => {
+	t.is(slugify('Ж п ю', {lowercase: false, separator: ' '}), 'Zh p yu');
+});
+
+test('supports Romanian', t => {
+	t.is(slugify('ș Ț', {lowercase: false, separator: ' '}), 's t');
 });
 
 test('custom lowercase', t => {
